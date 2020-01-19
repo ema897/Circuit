@@ -1,0 +1,959 @@
+#include <stdlib.h>
+#include <vector>
+#include <string>
+#include <fstream>
+#include <string.h>
+#include <cctype>
+
+
+
+
+
+
+
+#include <queue>
+#include <stack>
+#include <iostream>
+#include <list>
+
+using namespace std;
+
+class Component {
+public:
+    Component();
+    virtual ~Component();
+    virtual void logicFunction();
+    void setInputs( Component &);
+    char getOutput() const;
+    Component* leftChild();
+    Component* rightChild();
+    //void setState(bool&);//serve per vettore input: essendo vettore component, serve il metodo che viene implementato in constant component
+protected:
+    char  _present_state,_previous_state;
+    Component *_x1,*_x2;
+    float _lh,_hl;// consumo da low a high e da high a low
+private:
+};
+
+
+class Not : public Component{
+public:
+    Not();
+    virtual ~Not();
+    void logicFunction();
+
+protected:
+
+private:
+} ;
+
+class And : public Component{
+public:
+    And();
+    virtual ~And();
+    void logicFunction() override;
+    void setInputs( Component&,  Component&);
+protected:
+
+private:
+    //Component *_x2;
+} ;
+
+class Nand : public Component{
+public:
+    Nand();
+    virtual ~Nand();
+    void logicFunction() override ;
+    void setInputs( Component&,  Component&);
+protected:
+
+private:
+    //Component *_x2;
+} ;
+
+class Or : public Component{
+public:
+    Or();
+    virtual ~Or();
+    void logicFunction() override ;
+    void setInputs( Component&,  Component&);
+protected:
+
+private:
+    //Component *_x2;
+} ;
+
+class Nor : public Component{
+public:
+    Nor();
+    virtual ~Nor();
+    void logicFunction() override ;
+    void setInputs( Component&,  Component&);
+protected:
+
+private:
+    //Component *_x2;
+} ;
+
+class Xor : public Component{
+public:
+    Xor();
+    virtual ~Xor();
+    void logicFunction() override ;
+    void setInputs( Component&,  Component&);
+protected:
+
+private:
+    //Component *_x2;
+} ;
+
+class Xnor : public Component{
+public:
+    Xnor();
+    virtual ~Xnor();
+    void logicFunction() override ;
+    void setInputs( Component&,  Component&);
+protected:
+
+private:
+    //Component *_x2;
+} ;
+
+class FlipFlop : public Component{
+public:
+    FlipFlop();
+    virtual ~FlipFlop();
+    void logicFunction() override ;
+    void Clock(bool&);
+protected:
+
+private:
+    bool _clock;
+} ;
+
+class ConstantComponent : public Component{
+public:
+    ConstantComponent();
+    virtual ~ConstantComponent();
+    void setState(char&);
+    void logicFunction() override ;
+protected:
+
+private:
+
+};
+
+
+char toChar(bool x){
+    char c;
+    if(x) c='1';
+    else c='0';
+    return c;
+}
+
+bool toBool(char c){
+    bool x;
+    if (c=='1') x=true;
+    else x=false;
+    return x;
+}
+
+Component ::Component() {
+    //ctor
+    _x1= nullptr;
+    _x2= nullptr;
+    _present_state='0';
+    _previous_state='0';
+    _lh=0;
+    _hl=0;
+}
+
+Component ::~Component() {
+    //dtor
+}
+
+void Component :: logicFunction() {
+    cout<<"nothing";
+}
+void Component ::setInputs( Component &a){
+    _x1=&a;
+}
+
+char Component ::getOutput() const {
+    return _present_state;
+}
+
+Component* Component :: leftChild(){
+    return _x1;
+}
+Component* Component :: rightChild(){
+    return _x2;
+}
+
+Not :: Not() {
+    _x1= nullptr;
+    _x2= nullptr;
+}
+
+Not :: ~Not() {
+}
+
+void Not ::logicFunction() {
+    _previous_state=_present_state;
+    if (_x1->getOutput()=='x') _present_state='x';
+    else _present_state=toChar(!toBool(_x1->getOutput()));
+}
+
+
+And ::And(){
+    _x1= nullptr;
+    _x2= nullptr;
+}
+
+And :: ~And() {
+    //dtor
+}
+
+void And::logicFunction() {
+    _previous_state=_present_state;
+    if((_x1->getOutput()=='x')||(_x2->getOutput()=='x')) _present_state='x';
+    else _present_state=toChar(toBool(_x1->getOutput())&&toBool(_x2->getOutput()));
+}
+
+void And::setInputs( Component &a,  Component &b) {
+    _x1=&a;
+    _x2=&b;
+}
+
+
+Nand ::Nand(){
+    _x1= nullptr;
+    _x2= nullptr;
+}
+
+Nand :: ~Nand() {
+    //dtor
+}
+
+void Nand::logicFunction() {
+    _previous_state=_present_state;
+    if((_x1->getOutput()=='x')||(_x2->getOutput()=='x')) _present_state='x';
+    else _present_state=toChar(!(toBool(_x1->getOutput())&&toBool(_x2->getOutput())));
+}
+
+void Nand::setInputs( Component &a,  Component &b) {
+    _x1=&a;
+    _x2=&b;
+}
+
+
+Or ::Or(){
+    _x1= nullptr;
+    _x2= nullptr;
+}
+
+Or :: ~Or() {
+    //dtor
+}
+
+
+void Or::logicFunction() {
+    _previous_state=_present_state;
+    if((_x1->getOutput()=='x')||(_x2->getOutput()=='x')) _present_state='x';
+    else _present_state=toChar(toBool(_x1->getOutput())||toBool(_x2->getOutput()));
+}
+
+void Or::setInputs( Component &a,  Component &b) {
+    _x1=&a;
+    _x2=&b;
+}
+
+
+Nor ::Nor(){
+    _x1= nullptr;
+    _x2= nullptr;
+}
+
+Nor :: ~Nor() {
+    //dtor
+}
+
+
+void Nor::logicFunction() {
+    _previous_state=_present_state;
+    if((_x1->getOutput()=='x')||(_x2->getOutput()=='x')) _present_state='x';
+    else _present_state=toChar(toBool(!(_x1->getOutput())||toBool(_x2->getOutput())));
+}
+
+void Nor::setInputs( Component &a,  Component &b) {
+    _x1=&a;
+    _x2=&b;
+}
+
+
+Xor ::Xor(){
+    _x1= nullptr;
+    _x2= nullptr;
+}
+
+Xor :: ~Xor() {
+    //dtor
+}
+
+void Xor::logicFunction() {
+    _previous_state=_present_state;
+    if((_x1->getOutput()=='x')||(_x2->getOutput()=='x')) _present_state='x';
+    else _present_state=toChar(toBool(_x1->getOutput())^toBool(_x2->getOutput()));
+}
+
+void Xor::setInputs( Component &a,  Component &b) {
+    _x1=&a;
+    _x2=&b;
+}
+
+
+Xnor ::Xnor(){
+    _x1= nullptr;
+    _x2= nullptr;
+}
+
+Xnor :: ~Xnor() {
+    //dtor
+}
+
+void Xnor::logicFunction() {
+    _previous_state=_present_state;
+    if((_x1->getOutput()=='x')||(_x2->getOutput()=='x')) _present_state='x';
+    else _present_state=toChar(!(toBool(_x1->getOutput())^toBool(_x2->getOutput())));
+}
+
+void Xnor::setInputs( Component &a,  Component &b) {
+    _x1=&a;
+    _x2=&b;
+}
+
+
+FlipFlop ::FlipFlop() {
+    _present_state='x';
+    _x1= nullptr;
+    _x2= nullptr;
+}
+
+FlipFlop :: ~FlipFlop() {
+    //dtor
+}
+
+
+void FlipFlop :: logicFunction() {
+    if (_clock==true){
+        _previous_state=_present_state;
+        if(_x1->getOutput()=='x') _present_state='x';
+        else _present_state=_x1->getOutput();
+    }
+}
+
+
+void FlipFlop::Clock(bool& clock) {
+    _clock = clock;
+}
+
+
+ConstantComponent :: ConstantComponent() {
+    _x1= nullptr;
+    _x2= nullptr;
+}
+
+
+ConstantComponent ::~ConstantComponent() {
+    //dtor
+}
+
+void ConstantComponent :: logicFunction() {
+    if (_x1!= nullptr) _present_state=_x1->getOutput();
+
+}
+void ConstantComponent :: setState(char &input) {
+    _present_state=input;
+}
+
+
+
+#define dict_lenght 6
+#define gate_lenght 7
+struct element{
+    string name;
+    ConstantComponent *data;//puntatore perché component è classe astratta
+};
+struct FF{
+    string name;
+    FlipFlop *data;
+};
+
+class Circuit
+{
+    friend class Component;//ha accesso ai metodi di component
+public:
+    Circuit();
+    virtual ~Circuit();
+    void setFileName();
+    void openFile() ;
+    void closeFile() ;
+    bool setInputs();
+    bool buildGraph();
+    bool getWord(string&);
+    void makeVectors(int& );
+    bool doOp(int&);
+    int checkOperator(string&);
+    int checkInput(string&);
+    int checkFF(string &word);
+    Component* assign();
+    stack<Component*> tree(int, stack<Component*>);
+    void postOrder(Component*);
+    void Bfs();
+    void simulation(Component*);
+    //component addComponent();
+protected:
+
+private:
+    vector <element> _input_vector;
+    vector <element> _output_vector;
+    vector <FF> _FF_vector;
+    string _dictionary[dict_lenght]={"clk","input","output","assign","endmodule", "ffx"};
+    string _gate[gate_lenght]={"not","and","or", "xor","nand","nor","xnor"};
+    string _file_name;
+    ifstream _my_file;
+    bool _sequenziale;
+};
+
+Circuit::Circuit()
+{
+    setFileName();
+    openFile();
+    _sequenziale=false;
+    buildGraph();
+    //ctor
+}
+
+Circuit::~Circuit()
+{
+    closeFile();
+    //dtor
+}
+
+
+bool Circuit :: setInputs() {
+    string input_file_name;
+    ifstream input_file;
+    cout<<"inserire nome file contente lista input: ";
+    cin>>input_file_name;
+    string line;
+    int i=0;
+    input_file.open(input_file_name.c_str(),ios::in);
+    if (!input_file.is_open()) cout<<"error: file input non trovato";
+    else{
+        while (getline(input_file,line)){//leggi una riga, assegna ogni carattere della riga a un input e fai simulazioni. poi leggi altra riga. controlla se ci sono errori
+            while(i<_input_vector.size()) {
+                if (line[i] == '0' || line[i] == '1') {
+                    _input_vector[i].data->setState(line[i]);
+                    i++;
+                } else {
+                    cout << "errore: hai inserito un carattere non valido; inserire solo '0' o '1'";
+                    return false;
+                }
+            }
+            //DoSimulation();
+
+            i=0;
+            while(i<_output_vector.size()){
+                //dosimulation();
+                simulation(_output_vector[i].data);
+                cout<<_output_vector[i].name<<":"<<_output_vector[i].data->getOutput()<<endl;
+                i++;
+            }
+        }
+    }
+    input_file.close();
+    return true;
+} // manca da fare funzione doSimulation che  printa le uscite per ogni colpo di clock
+
+bool Circuit :: buildGraph(){
+    bool module_flag=false;
+    string word,line;
+    int i=0;
+    if (_my_file.is_open()){
+        while (getWord(word)) {
+            if (word=="module") {//controlla se la prima parola è module;
+                getWord(word); // nome circuito --
+                getWord(word); // {
+                if (word=="{") {
+                    while (getWord(word)) {//se hai trovato la {, leggi le parole finchè non trovi } o finisce il file
+                        //leggi linea e assegna ingressi/uscite tramite ricerca nel dizionario
+                        if (word=="}") break;
+                        i=0;
+                        do{
+                            if (word==_dictionary[i]) break;
+                            i++;
+                        }while (i<3);
+                        //confronta la parola trovata con il dizionario : clk, input, output
+                        if (i == 3) {//se i=3, sei uscito dal ciclo senza trovare una di quelle parole: devi dare errore
+                            cout<< "errore negli input/output del circuito";// trovata una parola che non è input output o clock
+                            return false;
+                        } else doOp(i);// passa indirizzo del vettore che matcha con la parola trovata e fa operazioni : se clock è sequenziale, se inp aggiungi elemento in vett input, idem con out
+                    }//sei uscito dal ciclo perché è finito il file o hai trovato }
+                    if (word != "}") {
+                        cout << "errore formattazione file : expected '}' ";
+                        return false;    //sei uscito dal ciclo senza trovare }: arrivato a end file senza }
+                    }
+                }else{
+                    cout<<"errore: expected { missing";
+                    return false;
+                }
+                getWord(word);//appena uscito dal ciclo, dopo aver trovato } deve esserci ';'
+                if (word != ";") {
+                    cout << "error : expected ';' after }";
+
+                    //return false;
+                }
+                getWord(word);//qui deve trovare la prima volta la parola chiave, le altre volte si fa con il while principale
+                module_flag= true;
+            }else if (!module_flag){
+                cout<<"errore: "<<word<<"prima parola deve essere 'module'";
+                return false;
+            }
+            //finito confronto di module, ora trova assign o ff o end module o instance :
+            //ho già una parola, la confronto con assign, ff, endmodule, istance
+            if (module_flag){
+                //getWord(word);
+                i=3;
+                do{
+                    if (word==_dictionary[i]) break;
+                    if (i==5) //se è ff deve controllare solo i primi due caratteri
+                            if (strncmp (word.c_str(),_dictionary[i].c_str(),2) == 0)
+                                if (_sequenziale) { //FF
+                                    _FF_vector.push_back( { word, new FlipFlop } );
+                                    Component* head;
+                                    head=assign();
+                                    _FF_vector[_FF_vector.size()-1].data->setInputs(*head);
+                                    break;
+                                }// doOp(6)   trovato ff: strncmp compare i primi due caratteri
+                                else {
+                                    cout<<"errore: hai inserito un FlipFlop ma non hai inserito il clock";
+                                    return false;
+                                }
+                    i++;
+                }while (i<6);
+                if (i == 6){
+                    string nome_circuito=word;
+                    getWord(word);
+                    if(word=="istance"){
+                        //istance()
+                    } else {
+                        cout << "errore: non ci sono parole corrispondenti a " << nome_circuito;
+                        //return false
+                    }
+                }else {
+                    doOp(i); // ho trovato una parola valida, ora fai le operazioni di : input, output, ff, assign
+                }
+            }
+        }
+        return true;
+    }else{
+        cout<<"Error: file not found";
+        return false;
+    }
+
+}
+
+
+Component* Circuit :: assign(){
+    char *pch;
+    Component* head;
+    head= nullptr;
+    char buffer[200];
+    string line;
+    int i=0,address;
+    Component* cpPtr;
+    cpPtr= nullptr;
+    bool Aflag= false;
+    queue<string> output_queue;
+    stack<string> operator_stack;
+    stack<Component*> address_stack;
+    getline(_my_file,line);
+    strcpy(buffer,line.c_str());
+    pch = strtok(buffer, " ");
+    while(pch != nullptr) {
+        //shunting-yard
+        if (pch=="(") {
+            operator_stack.push(pch);
+            break;
+        }
+        if (pch==")"){
+            while(operator_stack.top()!="("){
+                output_queue.push(operator_stack.top());//estrai l'ultimo elemento dello stack e mettilo in output
+                operator_stack.pop();
+            }
+            if (operator_stack.empty()){
+                cout<<"errore: mismatching '(' in assign";
+                return nullptr;
+            }
+            operator_stack.pop();//elimina '('
+            break;
+        }
+        i=0;
+        while (i<_input_vector.size()){
+            if (pch==_input_vector[i].name){ //se è un ingresso,
+                output_queue.push(pch);
+                break;
+            }
+            i++;
+        }
+        i=0;
+        if (_sequenziale){
+            while (i<_FF_vector.size()) {
+            if (pch==_FF_vector[i].name){
+                output_queue.push(pch);
+                break;
+            }
+            i++;
+            }
+        }
+        i=0;
+        while(i<dict_lenght){
+            if (pch==_gate[i]) {
+                //cout<<operator_stack.top();
+                //string fpp="not";
+                while ((!operator_stack.empty()  /*operator_stack.top().c_str()!=fpp*/) && (operator_stack.top().c_str() != "(")) {
+                    output_queue.push(operator_stack.top());//estrai l'ultimo elemento dello stack e mettilo in output
+                    operator_stack.pop();
+                }
+                operator_stack.push(pch);
+                break;
+            }
+            i++;
+        }
+
+        pch = strtok(nullptr, " ");
+    }
+    while (!operator_stack.empty()){
+        output_queue.push(operator_stack.top());//estrai l'ultimo elemento dello stack e mettilo in output
+        operator_stack.pop();
+    }
+    //a questo punto ho output queue in ordine: costruisci albero
+    //creo stack: metto component, quando trovo un operatore faccio pop degli ultimi due
+    while(!output_queue.empty()){
+        if(output_queue.size()==1){
+             address_stack=tree(checkOperator(output_queue.front()), address_stack);
+             head=address_stack.top();
+             output_queue.pop();
+             break;
+         }
+        if (checkOperator(output_queue.front())>=0){  //trovato un operatore in _gate vector (checkoperator da -1 se non trova gate, indirizzo nel vettore se lo trova
+            address_stack=tree(checkOperator(output_queue.front()), address_stack);//costruito alberp, attenzione a non perdere le teste:
+            output_queue.pop();
+        }
+        address = checkInput(output_queue.front());
+        if (address>=0){
+            cpPtr=_input_vector[address].data;
+            address_stack.push(cpPtr);//puntatore a elemento di input vector
+            output_queue.pop();
+        }
+        address=checkFF(output_queue.front());
+        if (address>=0){
+            cpPtr=_FF_vector[address].data;
+            address_stack.push(cpPtr);//puntatore a elemento di input vector
+            output_queue.pop();
+        }
+    }
+    return head;
+    //ho la testa del circuito, la attacco a _output_vector:
+
+}
+
+bool Circuit :: doOp(int& i){//{"0clk","1input","2output","3assign","4instance","5endmodule", "6ffx", "7and","8or", "9xor","10not","11nand","12nor","13xnor"};
+    string word;
+    int c=0;
+    Component* head;
+    head= nullptr;
+    bool flag= false;
+    switch (i){
+
+        case 0: _sequenziale=true;
+            break;
+        case 1: getWord(word);
+            if (word==":"){
+                makeVectors(i);
+            }
+            break;//input
+        case 2: getWord(word);
+            if (word==":"){
+                makeVectors(i);
+            }
+            break;//output
+        case 3: getWord(word);
+            //leggi elemento di output vector, controlla se c'è
+            c=0;
+            do{
+                if (word.compare(_output_vector[c].name.c_str())==0) {
+                    flag = true;
+                    break;
+                }
+                c++;
+            }while(c<_output_vector.size());
+            if (!flag) {//uscito dal ciclo senza trovare output definito
+                cout << "errore: output '" << word << "' non definito";
+                return false;
+            }
+            //RICOMINCIARE DA QUI: CHECK DELL'ELEMENTO NEL VETTORE USCITE, DOPODICHè IMPLEMENTAZIONE SHUNTING-YARD
+            getWord(word);//leggi '='
+            if (!(word=="=")){
+                cout<<"errore: inserire '=' dopo "<<_output_vector[c].name;
+                return false;
+            }
+            head=assign();
+            _output_vector[c].data->setInputs(*head);
+            //assign()
+            break; //assigncase 4: break; //istance
+        case 4:_my_file.close();
+            break;//endmodule
+        default: break;
+    }
+
+}
+
+/*bool Circuit :: getWord(string& word){
+    char *pch;
+    char buffer[200];
+    string line;
+    if (_my_file.is_open()){
+        while (getline(_my_file,line)){
+            strcpy(buffer,line.c_str());
+            pch = strtok(buffer, ",.-");
+            while(pch != nullptr){
+                cout << pch << endl;
+                pch = strtok(std::nullptr, ",.-")
+            }
+        }
+    }
+}*/
+/*bool myispunct(char ch){
+    return ispunct(ch) && ch!='_';
+}*/
+
+//Component Circuit :: addComponent(){
+
+//}
+
+bool myispunct(char ch) { return std::ispunct(ch) && ch != '_'; }
+bool Circuit :: getWord(string& word) { //estrae una parola e rende tutti i caratteri minuscoli
+    word.clear();
+    char ch;
+    while (_my_file.get(ch) && isspace(ch)); //scorre il file finché elimina gli spazi
+    if (isalpha(ch)) ch = tolower(ch);
+    if (_my_file) word += ch;
+    if (!myispunct(ch)) {
+        while (_my_file.get(ch)) {
+            if (isalpha(ch)) ch = tolower(ch);
+            // for ( ; _my_file.get(ch); word += ch)
+            if (isspace(ch) || myispunct(ch)) { // or myispunct
+                if (ispunct(ch)) _my_file.putback(ch);
+                break;
+            }
+            word += ch;
+        }
+    }
+    return word.size() !=0;
+}
+
+void Circuit :: makeVectors(int& i){
+    char *pch;
+    char buffer[200];
+    string line;
+    int j=0;
+    getline(_my_file,line);
+    strcpy(buffer,line.c_str());
+    pch = strtok(buffer, ", ");
+    while(pch != nullptr){
+        if(i==1) {
+            j = _input_vector.size();
+            _input_vector.push_back( { pch, new ConstantComponent } );
+        }else{
+            j= _output_vector.size();
+            _output_vector.push_back( { pch, new ConstantComponent } );
+        }
+        pch = strtok(nullptr, ",");
+    }
+}
+
+void Circuit :: setFileName(){
+    string nomefile;
+    cout<<"Insert file's name to open: ";
+    cin>>nomefile;
+    _file_name=nomefile;
+}
+
+void Circuit :: openFile()  {
+    _my_file.open(_file_name.c_str(), ios:: in);
+    if (!_my_file.is_open()) cout<<"unable to open file";
+}
+
+void Circuit :: closeFile() {
+    _my_file.close();
+}
+
+int Circuit :: checkOperator(string& operatore){
+    // if
+    for (int i=0;i<dict_lenght;i++){
+        if (_gate[i]==operatore) {
+            return i;
+        }
+    }
+    return -1;
+}
+
+int Circuit :: checkInput(string &word){
+    for (int i=0; i<_input_vector.size(); i++){
+        if (_input_vector[i].name==word){
+            return i;
+        }
+    }
+    return -1;
+}
+int Circuit :: checkFF(string &word){
+    for (int i=0; i<_FF_vector.size(); i++){
+        if (_FF_vector[i].name==word){
+            return i;
+        }
+    }
+    return -1;
+}
+
+
+stack<Component*> Circuit :: tree(int address, stack<Component*> stack) { //and","or", "xor","nand","nor","xnor"};
+    Component* temp= nullptr;
+    switch (address) {
+        case 0:{
+            Not *pNot = new Not;
+            pNot->setInputs(*stack.top());
+            stack.pop();
+            stack.push(pNot);
+            //deleteP(pAnd,pOr,pXor,pNand,pNor,pXnor);
+            return stack;
+            break;
+        }
+        case 1: {
+            And *pAnd = new And;
+            temp = stack.top();
+            stack.pop();
+            pAnd->setInputs(*stack.top(), *temp);
+            stack.pop();
+            stack.push(pAnd);
+            //deleteP(pNot,pOr,pXor,pNand,pNor,pXnor);
+            return stack;
+            break;
+        }
+        case 2: {
+            Or *pOr = new Or ;
+            temp = stack.top();
+            stack.pop();
+            pOr->setInputs(*stack.top(), *temp);
+            stack.pop();
+            stack.push(pOr);
+            //deleteP(pAnd,pNot,pXor,pNand,pNor,pXnor);
+            return stack;
+            break;
+        }
+        case 3: {
+            Xor *pXor = new Xor;
+            temp = stack.top();
+            stack.pop();
+            pXor->setInputs(*stack.top(), *temp);
+            stack.pop();
+            stack.push(pXor);
+            //deleteP(pAnd,pOr,pNot,pNand,pNor,pXnor);
+            return stack;
+            break;
+        }
+        case 4: {
+            Nand *pNand = new Nand;
+            temp = stack.top();
+            stack.pop();
+            pNand->setInputs(*stack.top(), *temp);
+            stack.pop();
+            stack.push(pNand);
+            //deleteP(pAnd,pOr,pXor,pNot,pNor,pXnor);
+            return stack;
+            break;
+        }
+        case 5: {
+            Nor *pNor = new Nor;
+            temp = stack.top();
+            stack.pop();
+            pNor->setInputs(*stack.top(), *temp);
+            stack.pop();
+            stack.push(pNor);
+            //deleteP(pAnd,pOr,pXor,pNand,pNot,pXnor);
+            return stack;
+            break;
+        }
+        case 6: {
+            Xnor *pXnor = new Xnor;
+            temp = stack.top();
+            stack.pop();
+            pXnor->setInputs(*stack.top(), *temp);
+            stack.pop();
+            stack.push(pXnor);
+            //deleteP(pAnd,pOr,pXor,pNand,pNor,pNot);
+            return stack;
+            break;
+        }
+        default:break;
+    }
+}
+/*implementare shunting-yard che fa diventare la linea una visita reverse polish postfix di un albero e da quella costruire l'albero*/
+
+void Circuit :: postOrder(Component* node) {
+    if(node== nullptr) return;
+    postOrder(node->leftChild());
+    postOrder(node->rightChild());
+    node->logicFunction();
+}
+
+/*void Circuit :: Bfs(Component* head){
+    list<Component* > lista;
+    queue<Component* > coda;
+    bool checked = {0};
+    coda.push(head);
+    while(!coda.empty()) {
+        Component* corrente = coda.front();
+        coda.pop();
+        if(checked[corrente] == nullptr) {
+            cout << corrente << ' ';
+            for(list<Component*>::iterator it = lista[corrente].begin(); it != lista[corrente].end(); ++it) {
+                coda.push(*it);
+            }
+            checked[corrente] = 1;
+        }
+    }
+}
+*/
+void Circuit :: simulation(Component* head){
+    bool clock=1;
+    if (!_sequenziale) postOrder(head);
+    else{
+        postOrder(head);
+        for(int i=0; i<_FF_vector.size();i++){
+            _FF_vector[i].data->Clock(clock);
+        }
+        clock=0;
+        for(int i=0; i<_FF_vector.size();i++){
+            _FF_vector[i].data->Clock(clock);
+        }
+    }
+}
+
+int main() {
+    Circuit circuito;
+    circuito.setInputs();
+    return 0;
+}
+
